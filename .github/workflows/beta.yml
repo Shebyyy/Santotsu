@@ -99,11 +99,12 @@ jobs:
         if [ ${#commit_messages} -gt $max_length ]; then
           commit_messages="${commit_messages:0:$max_length}... (truncated)"
         fi
-       #Telegram
-            curl -F "chat_id=-1001990691533" \
-           -F "document=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
-           -F "caption=[Alpha-Build: **$VERSION**]: ${commit_messages}" \
-            https://api.telegram.org/bot6466986906:AAFNxh2KOe-E1z4Khwlc0AMngWz0UwVmOT8/sendDocument
+
+            #Telegram
+        curl -F "chat_id=-1001990691533" \" \
+          -F "document=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
+          -F "caption=Alpha-Build: ${VERSION}: ${commit_messages}" \
+         https://api.telegram.org/bot6466986906:AAFNxh2KOe-E1z4Khwlc0AMngWz0UwVmOT8/sendDocument
 
       env:
         COMMIT_LOG: ${{ env.COMMIT_LOG }}
