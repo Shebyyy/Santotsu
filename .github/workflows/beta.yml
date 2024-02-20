@@ -91,21 +91,11 @@ jobs:
     - name: Upload APK to Discord and Telegram
       shell: bash
       run: |
-        #Discord
-        commit_messages=$(echo "$COMMIT_LOG" | sed 's/%0A/\n/g; s/^/\n/')
-        #  Truncate commit messages if they are too long
-        max_length=1900 # Adjust this value as needed
-        if [ ${#commit_messages} -gt $max_length ]; then
-          commit_messages="${commit_messages:0:$max_length}... (truncated)"
-        fi
-        contentbody=$( jq -nc --arg msg "Alpha-Build: <@714249925248024617> **$VERSION**:" --arg commits "$commit_messages" '{"content": ($msg + "\n" + $commits)}' )
-        curl -F "payload_json=${contentbody}" -F "dantotsu_debug=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" ${{ secrets.DISCORD_WEBHOOK }}
-        
         #Telegram
-        curl -F "chat_id=${{ secrets.TELEGRAM_CHANNEL_ID }}" \
+        curl -F "chat_id=${{ 6228897074 }}" \
           -F "document=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
           -F "caption=Alpha-Build: ${VERSION}: ${commit_messages}" \
-         https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+         https://api.telegram.org/bot${{ 6466986906:AAFNxh2KOe-E1z4Khwlc0AMngWz0UwVmOT8 }}/sendDocument
 
       env:
         COMMIT_LOG: ${{ env.COMMIT_LOG }}
