@@ -53,7 +53,7 @@ jobs:
       shell: bash
       run: |
         curl -F "chat_id=-1001990691533" \
-             -F "document=@app/build/outputs/apk/debug/app-debug.apk" \
+             -F "document=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
              https://api.telegram.org/bot6466986906:AAFNxh2KOe-E1z4Khwlc0AMngWz0UwVmOT8/sendDocument
              
     - name: Delete Old Pre-Releases
