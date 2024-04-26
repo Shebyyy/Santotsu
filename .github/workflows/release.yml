@@ -36,8 +36,6 @@ jobs:
 
       - name: Commit changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add app/build.gradle
           git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version }} [skip ci]"
           git push
