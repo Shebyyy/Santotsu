@@ -93,6 +93,12 @@ jobs:
       if: ${{ github.repository == 'Shebyyy/Santotsu' }}
       shell: bash
       run: |
+       commit_messages=$(echo "$COMMIT_LOG" | sed 's/%0A/\n/g; s/^/\n/')
+        #  Truncate commit messages if they are too long
+        max_length=1900 # Adjust this value as needed
+        if [ ${#commit_messages} -gt $max_length ]; then
+          commit_messages="${commit_messages:0:$max_length}... (truncated)"
+          
         #Telegram
         curl -F "chat_id=-1001990691533" \
              -F "document=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
