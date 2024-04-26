@@ -19,6 +19,20 @@ jobs:
         with:
           fetch-depth: 0
 
+- name: Update version name
+        run: |
+          version=$(awk '/versionName/ {print $NF}' app/build.gradle)
+          new_version=$(echo $version | awk -F '[.]' '{print $1"."$2+1"."$3}')
+          sed -i "s/versionName \"$version\"/versionName \"$new_version\"/" app/build.gradle
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add app/build.gradle
+          git commit -m "Update versionName"
+          git push
+
       - name: Fetch version name
         run: |
           VERSION=$(grep -E -o "versionName \".*\"" app/build.gradle | sed -e 's/versionName //g' | tr -d '"')
