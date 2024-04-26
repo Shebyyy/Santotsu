@@ -1,23 +1,16 @@
-name: Make a release
+name: Create Release
 
 on:
   push:
     branches:
-      - dev
-    paths-ignore:
-      - '**/README.md'
+      - dev  # Modify this if you're using a different branch
 
 jobs:
-  build:
+  increment_version_and_build:
     runs-on: ubuntu-latest
-    env:
-      CI: true
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Read current version
         id: read_version
@@ -41,12 +34,30 @@ jobs:
           new_version="${{ steps.increment_version.outputs.new_version }}"
           sed -i "s/versionName \".*\"/versionName \"$new_version\"/" app/build.gradle
 
-      - name: Create Tag
-        if: github.repository == 'Shebyyy/Santotsu'
+      - name: Commit changes
         run: |
-          git tag -a ${{ env.VERSION }} -m "Version ${{ env.VERSION }}"
-          git push origin ${{ env.VERSION }}
-          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add app/build.gradle
+          git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version }} [skip ci]"
+          git push
+
+      - name: Create Tag
+        run: |
+          git tag -a v${{ steps.increment_version.outputs.new_version }} -m "Version ${{ steps.increment_version.outputs.new_version }}"
+          git push origin v${{ steps.increment_version.outputs.new_version }}
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch version name
+        run: |
+          VERSION=$(grep -E -o "versionName \".*\"" app/build.gradle | sed -e 's/versionName //g' | tr -d '"')
+          echo "Version $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
@@ -89,8 +100,8 @@ jobs:
             | Google Build | ${{ env.GOOGLE }}
           files: |
             release-google-${{ env.VERSION }}.apk
+            release-fdroid-${{ env.VERSION }}.apk
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
