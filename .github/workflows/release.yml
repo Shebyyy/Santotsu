@@ -89,7 +89,7 @@ jobs:
         if: github.repository == 'Shebyyy/Santotsu'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.increment_version_and_build.outputs.version }}
+          tag_name: v${{ needs.increment_version_and_build.outputs.version }}  # Prefix 'v' added here
           name: Dantotsu ${{ needs.increment_version_and_build.outputs.version }}
           body: |
             ---
