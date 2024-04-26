@@ -1,7 +1,11 @@
 name: Make a release draft test
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - '**/README.md'
 
 jobs:
   build:
