@@ -87,8 +87,8 @@ jobs:
         if: github.repository == 'Shebyyy/Santotsu'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: Dantotsu ${{ env.VERSION }}
+          tag_name: ${{ steps.increment_version.outputs.new_version }}
+          name: Dantotsu ${{ steps.increment_version.outputs.new_version }}
           body: |
             ---
 
@@ -103,3 +103,4 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
