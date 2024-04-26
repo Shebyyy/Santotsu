@@ -1,11 +1,7 @@
-name: Make a release draft test
+name: Make a release
 
 on:
-  push:
-    branches:
-      - dev
-    paths-ignore:
-      - '**/README.md'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -51,7 +47,7 @@ jobs:
         with:
           name: Dantotsu-Google
           path: "release-google-${{ env.VERSION }}.apk"
-
+          
       - name: Create Release
         if: github.repository == 'Shebyyy/Santotsu'
         uses: softprops/action-gh-release@v2
@@ -66,9 +62,11 @@ jobs:
             | Variant | SHA-256 |
             | ------- | ------- |
             | Google Build | ${{ env.GOOGLE }}
+            | Fdroid Build | ${{ env.FDROID }}
           files: |
             release-google-${{ env.VERSION }}.apk
-          draft: true
+            release-fdroid-${{ env.VERSION }}.apk
+          draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
