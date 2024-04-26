@@ -6,7 +6,7 @@ on:
       - dev  # Modify this if you're using a different branch
 
 jobs:
-  increment_version_and_build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,6 +36,8 @@ jobs:
 
       - name: Commit changes
         run: |
+          git config --local user.email "ansarishehbaz726@gmail.com"
+          git config --local user.name "Shebyyy"
           git add app/build.gradle
           git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version }} [skip ci]"
           git push
@@ -98,7 +100,6 @@ jobs:
             | Google Build | ${{ env.GOOGLE }}
           files: |
             release-google-${{ env.VERSION }}.apk
-            release-fdroid-${{ env.VERSION }}.apk
           draft: false
           prerelease: false
         env:
