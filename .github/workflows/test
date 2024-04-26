@@ -1,5 +1,55 @@
+name: Make a release draft test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch version name
+        run: |
+          VERSION=$(grep -E -o "versionName \".*\"" app/build.gradle | sed -e 's/versionName //g' | tr -d '"')
+          echo "Version $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: gradle
+  
+      - name: List files in the directory
+        run: ls -l
+      
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+  
+      - name: Build with Gradle (Google)
+        run: ./gradlew assembleGoogleRelease
+
+      - name: Move APK and calculate checksum
+        run: |
+          mv app/build/outputs/apk/google/release/app-google-release.apk release-google-${{ env.VERSION }}.apk
+          echo "GOOGLE=$(sha256sum release-google-${{ env.VERSION }}.apk | cut -d' ' -f1)" >> $GITHUB_ENV
+
+      - name: Upload Build Artifacts (Google)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dantotsu-Google
+          path: "release-google-${{ env.VERSION }}.apk"
+
       - name: Create Release
-        if: github.repository == 'Sadwhy/Pantotsu'
+        if: github.repository == 'Shebyyy/Santotsu'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
