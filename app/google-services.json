@@ -66,7 +66,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1039200814590:android:40e14720ee97917e1aacaf",
         "android_client_info": {
-          "package_name": "ani.dantotsu"
+          "package_name": "ani.dantotsu.stable"
         }
       },
       "oauth_client": [],
