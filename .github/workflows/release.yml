@@ -8,6 +8,8 @@ on:
 jobs:
   increment_version_and_build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.increment_version.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -74,21 +76,21 @@ jobs:
 
       - name: Move APK and calculate checksum
         run: |
-          mv app/build/outputs/apk/google/release/app-google-release.apk release-google-${{ env.VERSION }}.apk
-          echo "GOOGLE=$(sha256sum release-google-${{ env.VERSION }}.apk | cut -d' ' -f1)" >> $GITHUB_ENV
+          mv app/build/outputs/apk/google/release/app-google-release.apk release-google-${{ needs.increment_version_and_build.outputs.version }}.apk
+          echo "GOOGLE=$(sha256sum release-google-${{ needs.increment_version_and_build.outputs.version }}.apk | cut -d' ' -f1)" >> $GITHUB_ENV
 
       - name: Upload Build Artifacts (Google)
         uses: actions/upload-artifact@v4
         with:
           name: Dantotsu-Google
-          path: "release-google-${{ env.VERSION }}.apk"
+          path: "release-google-${{ needs.increment_version_and_build.outputs.version }}.apk"
           
       - name: Create Release
         if: github.repository == 'Shebyyy/Santotsu'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.increment_version.outputs.new_version }}
-          name: Dantotsu ${{ steps.increment_version.outputs.new_version }}
+          tag_name: ${{ needs.increment_version_and_build.outputs.version }}
+          name: Dantotsu ${{ needs.increment_version_and_build.outputs.version }}
           body: |
             ---
 
@@ -98,9 +100,8 @@ jobs:
             | ------- | ------- |
             | Google Build | ${{ env.GOOGLE }}
           files: |
-            release-google-${{ env.VERSION }}.apk
+            release-google-${{ needs.increment_version_and_build.outputs.version }}.apk
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
