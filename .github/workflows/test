@@ -1,0 +1,20 @@
+      - name: Create Release
+        if: github.repository == 'Sadwhy/Pantotsu'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Dantotsu ${{ env.VERSION }}
+          body: |
+            ---
+
+            ### Checksums
+
+            | Variant | SHA-256 |
+            | ------- | ------- |
+            | Google Build | ${{ env.GOOGLE }}
+          files: |
+            release-google-${{ env.VERSION }}.apk
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
