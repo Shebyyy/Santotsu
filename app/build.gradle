@@ -57,6 +57,8 @@ android {
             debuggable false
         }
         release {
+            applicationIdSuffix ".stable"
+            versionNameSuffix "-stable02"
             manifestPlaceholders.icon_placeholder = "@mipmap/ic_launcher"
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_round"
             debuggable false
