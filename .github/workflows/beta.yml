@@ -1,4 +1,4 @@
-name: Build APK and Notify Telegram 
+name: Build APK and Notify Telegram
 
 on:
   push:
