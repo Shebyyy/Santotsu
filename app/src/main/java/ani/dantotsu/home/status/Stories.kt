@@ -31,6 +31,7 @@ import ani.dantotsu.profile.User
 import ani.dantotsu.profile.UsersDialogFragment
 import ani.dantotsu.profile.activity.ActivityItemBuilder
 import ani.dantotsu.settings.saving.PrefManager
+import ani.dantotsu.settings.saving.PrefName
 import ani.dantotsu.snackString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,7 @@ constructor(
     private lateinit var rightTouchPanel: FrameLayout
     private lateinit var statusUserContainer: LinearLayout
     private lateinit var imageContentView: ImageView
+    private lateinit var imageContentViewKen: ImageView
     private lateinit var loadingView: ProgressBar
     private lateinit var activityLikeCount: TextView
     private lateinit var activityLike: ImageView
@@ -84,6 +86,7 @@ constructor(
         leftTouchPanel = findViewById(R.id.leftTouchPanel)
         rightTouchPanel = findViewById(R.id.rightTouchPanel)
         imageContentView = findViewById(R.id.contentImageView)
+        imageContentViewKen = findViewById(R.id.contentImageViewKen)
         statusUserContainer = findViewById(R.id.statusUserContainer)
         loadingView = findViewById(R.id.androidStoriesLoadingView)
         coverImage = findViewById(R.id.coverImage)
@@ -369,7 +372,13 @@ constructor(
     private fun loadStory(story: Activity) {
         loadingView.visibility = View.GONE
         animation.start()
-        blurImage(imageContentView, story.media?.bannerImage ?: story.media?.coverImage?.extraLarge)
+
+        val key = "${story.user?.id}_activities"
+        val set = PrefManager.getCustomVal<Set<Int>>(key, setOf()).plus((story.id))
+        PrefManager.setCustomVal(key, set)
+
+        val bannerAnimations: Boolean = PrefManager.getVal(PrefName.BannerAnimations)
+        blurImage(if (bannerAnimations)imageContentViewKen else imageContentView, story.media?.bannerImage ?: story.media?.coverImage?.extraLarge)
         userAvatar.loadImage(story.user?.avatar?.large)
         coverImage.loadImage(story.media?.coverImage?.extraLarge)
         userName.text = story.user?.name
@@ -381,7 +390,12 @@ constructor(
             else {
                 it.toString()
             }
-        }} ${story.progress ?: story.media?.title?.userPreferred}"
+        }} ${story.progress ?: story.media?.title?.userPreferred} " +
+            if (story.status?.contains("completed") == false) {
+                "of ${story.media?.title?.userPreferred}"
+            }else {
+                ""
+            }
         infoText.text = text
 
         statusUserContainer.setOnClickListener {
@@ -394,6 +408,20 @@ constructor(
             ContextCompat.startActivity(context, Intent(context, MediaDetailsActivity::class.java)
                 .putExtra("mediaId", story.media?.id),
                 null)
+        }
+
+
+
+        val userList = arrayListOf<User>()
+        story.likes?.forEach { i ->
+            userList.add(User(i.id, i.name.toString(), i.avatar?.medium, i.bannerImage))
+        }
+        activityLikeContainer.setOnLongClickListener {
+            UsersDialogFragment().apply {
+                userList(userList)
+                show(activ.supportFragmentManager, "dialog")
+            }
+            true
         }
 
         val likeColor = ContextCompat.getColor(context, R.color.yt_red)
@@ -421,20 +449,5 @@ constructor(
                 }
             }
         }
-
-        val userList = arrayListOf<User>()
-        story.likes?.forEach { i ->
-            userList.add(User(i.id, i.name.toString(), i.avatar?.medium, i.bannerImage))
-        }
-        activityLikeContainer.setOnLongClickListener {
-            UsersDialogFragment().apply {
-                userList(userList)
-                show(activ.supportFragmentManager, "dialog")
-            }
-            true
-        }
-        val key = "${story.user?.id}_activities"
-        val set = PrefManager.getCustomVal<Set<Int>>(key, setOf()).plus((story.id))
-        PrefManager.setCustomVal(key, set)
     }
 }
