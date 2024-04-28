@@ -6,7 +6,6 @@ import ani.dantotsu.checkGenreTime
 import ani.dantotsu.checkId
 import ani.dantotsu.connections.anilist.Anilist.authorRoles
 import ani.dantotsu.connections.anilist.Anilist.executeQuery
-import ani.dantotsu.connections.anilist.api.Activity
 import ani.dantotsu.connections.anilist.api.FeedResponse
 import ani.dantotsu.connections.anilist.api.FuzzyDate
 import ani.dantotsu.connections.anilist.api.NotificationResponse
@@ -1634,14 +1633,14 @@ Page(page:$page,perPage:50) {
         val filter = if (activityId != null) "id:$activityId,"
         else if (userId != null) "userId:$userId,"
         else if (global) "isFollowing:false,hasRepliesOrTypeText:true,"
-        else "isFollowing:true,type_not:MESSAGE,"
+        else "isFollowing:true,"
         return executeQuery<FeedResponse>(
             """{Page(page:$page,perPage:$ITEMS_PER_PAGE){activities(${filter}sort:ID_DESC){__typename ... on TextActivity{id userId type replyCount text(asHtml:true)siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on ListActivity{id userId type replyCount status progress siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}media{id title{english romaji native userPreferred}bannerImage coverImage{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on MessageActivity{id recipientId messengerId type replyCount likeCount message(asHtml:true)isLocked isSubscribed isLiked isPrivate siteUrl createdAt recipient{id name bannerImage avatar{medium large}}messenger{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}}}}""",
             force = true
         )
     }
     private fun status(page: Int = 1): String {
-        return """Page(page:$page,perPage:50){activities(isFollowing: true, type:MEDIA_LIST,sort:ID_DESC){__typename ... on TextActivity{id userId type replyCount text(asHtml:true)siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on ListActivity{id userId type replyCount status progress siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}media{id title{english romaji native userPreferred}bannerImage coverImage{extraLarge medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on MessageActivity{id recipientId messengerId type replyCount likeCount message(asHtml:true)isLocked isSubscribed isLiked isPrivate siteUrl createdAt recipient{id name bannerImage avatar{medium large}}messenger{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}}}"""
+        return """Page(page:$page,perPage:50){activities(isFollowing: true,sort:ID_DESC){__typename ... on TextActivity{id userId type replyCount text(asHtml:true)siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on ListActivity{id userId type replyCount status progress siteUrl isLocked isSubscribed likeCount isLiked isPinned createdAt user{id name bannerImage avatar{medium large}}media{id title{english romaji native userPreferred}bannerImage coverImage{extraLarge medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}... on MessageActivity{id recipientId messengerId type replyCount likeCount message(asHtml:true)isLocked isSubscribed isLiked isPrivate siteUrl createdAt recipient{id name bannerImage avatar{medium large}}messenger{id name bannerImage avatar{medium large}}replies{id userId activityId text(asHtml:true)likeCount isLiked createdAt user{id name bannerImage avatar{medium large}}likes{id name bannerImage avatar{medium large}}}likes{id name bannerImage avatar{medium large}}}}}"""
     }
     suspend fun getStatus(
     ):  MutableList<User> {
@@ -1651,30 +1650,35 @@ Page(page:$page,perPage:50) {
         }""".trimIndent()
         val list = mutableListOf<User>()
         val threeDaysAgo = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_MONTH, -10)
+            add(Calendar.DAY_OF_MONTH, -3)
         }.timeInMillis
         executeQuery<Social>(query(), force = true)?.data?.let { data ->
             val activities = listOf(data.page1.activities, data.page2.activities).flatten()
-                .filterNot { it.userId == Anilist.userid }
                 .sortedByDescending { it.createdAt }
-                .filter { it.createdAt < threeDaysAgo }
-
+                .filter { it.createdAt * 1000L > threeDaysAgo }
+            val anilistActivities = mutableListOf<User>()
             val groupedActivities = activities.groupBy { it.userId }
 
             groupedActivities.forEach { (_, userActivities) ->
                 val user = userActivities.firstOrNull()?.user
                 if (user != null) {
-                    list.add(
-                        User(
-                            user.id,
-                            user.name ?: "",
-                            user.avatar?.medium,
-                            user.bannerImage,
-                            activity = userActivities.toList()
-                        )
+                    val userToAdd = User(
+                        user.id,
+                        user.name ?: "",
+                        user.avatar?.medium,
+                        user.bannerImage,
+                        activity = userActivities.sortedBy { it.createdAt }.toList()
                     )
+                    if (user.id == Anilist.userid) {
+                        anilistActivities.add(0, userToAdd)
+                    } else {
+                        list.add(userToAdd)
+                    }
                 }
             }
+
+
+            list.addAll(0, anilistActivities)
         }
         return list
     }

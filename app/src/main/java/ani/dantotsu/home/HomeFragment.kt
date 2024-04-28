@@ -30,6 +30,7 @@ import ani.dantotsu.connections.anilist.AnilistHomeViewModel
 import ani.dantotsu.connections.anilist.getUserId
 import ani.dantotsu.currContext
 import ani.dantotsu.databinding.FragmentHomeBinding
+import ani.dantotsu.home.status.UserStatusAdapter
 import ani.dantotsu.loadImage
 import ani.dantotsu.media.Media
 import ani.dantotsu.media.MediaAdaptor
@@ -41,6 +42,7 @@ import ani.dantotsu.setSlideIn
 import ani.dantotsu.setSlideUp
 import ani.dantotsu.settings.SettingsDialogFragment
 import ani.dantotsu.settings.saving.PrefManager
+import ani.dantotsu.settings.saving.PrefManager.asLiveBool
 import ani.dantotsu.settings.saving.PrefName
 import ani.dantotsu.snackString
 import ani.dantotsu.statusBarHeight
@@ -55,7 +57,6 @@ import kotlin.math.min
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -321,7 +322,12 @@ class HomeFragment : Fragment() {
             binding.homeUserStatusRecyclerView.visibility = View.GONE
             if (it != null) {
                 if (it.isNotEmpty()) {
-                    binding.homeUserStatusRecyclerView.adapter = UserStatus(it)
+                    PrefManager.getLiveVal(PrefName.RefreshStatus, false).apply {
+                        asLiveBool()
+                        observe(viewLifecycleOwner) { _ ->
+                            binding.homeUserStatusRecyclerView.adapter = UserStatusAdapter(it)
+                        }
+                    }
                     binding.homeUserStatusRecyclerView.layoutManager = LinearLayoutManager(
                         requireContext(),
                         LinearLayoutManager.HORIZONTAL,
